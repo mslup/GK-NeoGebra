@@ -7,6 +7,18 @@ namespace lab1
 {
     public partial class NeoGebra : Form
     {
+        public const int eps = 8;
+        public static intPoint MousePos
+        {
+            get;
+            private set;
+        }
+        public static Dictionary<(intPoint, intPoint), char> EdgeConstraints
+        {
+            get;
+            private set;
+        }
+
         private enum States
         {
             Idle,
@@ -15,17 +27,11 @@ namespace lab1
             MovingEdge,
             MovingPolygon,
             AddingMidpoint,
-            DeletingVertex
+            DeletingVertex,
+            AddingEdgeConstraintH,
+            AddingEdgeConstraintV
         };
         private States state;
-
-        public const int eps = 8;
-
-        public static intPoint MousePos
-        {
-            get;
-            private set;
-        }
 
         private List<intPoint> Points = new();
         private List<Polygon> Polygons = new();
@@ -39,6 +45,7 @@ namespace lab1
             InitializeComponent();
             InitializeCanvas();
             MousePos = new();
+            EdgeConstraints = new();
             state = States.Idle;
         }
 
@@ -72,19 +79,23 @@ namespace lab1
             if (state == States.Idle)
                 state = States.BuildingPolygon;
 
-            if (state == States.DeletingVertex)
+            switch (state)
             {
+            case States.BuildingPolygon:
+                BuildPolygon(new intPoint(e.X, e.Y));
+                break;
+            case States.DeletingVertex:
                 DeleteVertex(new intPoint(e.X, e.Y));
-                (sender as Control)!.Invalidate();
-                return;
+                break;
+            case States.AddingEdgeConstraintH:
+                AddHorizontalConstraint();
+                break;
+            case States.AddingEdgeConstraintV:
+                AddVerticalConstraint();
+                break;
             }
 
-            if (state == States.BuildingPolygon)
-            {
-                BuildPolygon(new intPoint(e.X, e.Y));
-                (sender as Control)!.Invalidate();
-                return;
-            }
+            (sender as Control)!.Invalidate();
         }
 
         private void canvas_MouseMove(object sender, MouseEventArgs e)
@@ -129,15 +140,22 @@ namespace lab1
         {
             clickedPoint = new intPoint(e.X, e.Y);
 
-            if (state == States.Idle)
+            if (state == States.Idle ||
+                state == States.AddingEdgeConstraintH ||
+                state == States.AddingEdgeConstraintV)
             {
+                if (Polygons.Count == 0)
+                    return;
+
                 if (TryToGrabPoint(clickedPoint))
                 {
                     state = States.MovingVertex;
                 }
                 else if (TryToGrabLine(clickedPoint))
                 {
-                    state = States.MovingEdge;
+                    if (state != States.AddingEdgeConstraintH &&
+                        state != States.AddingEdgeConstraintV)
+                        state = States.MovingEdge;
                 }
                 else if (TryToGrabPolygon(clickedPoint))
                 {
@@ -158,19 +176,33 @@ namespace lab1
 
         private void NeoGebra_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.ControlKey)
+            switch (e.KeyCode)
             {
+            case Keys.ControlKey:
                 Cursor = Cursors.No;
                 state = States.DeletingVertex;
+                break;
+            case Keys.H:
+                Cursor = Cursors.HSplit;
+                state = States.AddingEdgeConstraintH;
+                break;
+            case Keys.V:
+                Cursor = Cursors.VSplit;
+                state = States.AddingEdgeConstraintV;
+                break;
             }
         }
 
         private void NeoGebra_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.ControlKey)
+            switch (e.KeyCode)
             {
+            case Keys.ControlKey:
+            case Keys.H:
+            case Keys.V:
                 Cursor = Cursors.Default;
                 state = States.Idle;
+                break;
             }
         }
 

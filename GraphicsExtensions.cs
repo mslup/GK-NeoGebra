@@ -61,29 +61,11 @@ namespace lab1
 
             g.DrawLine(linePen, P1, P2);
 
-            intPoint min, max;
-            if (p1.x == p2.x)
-            {
-                min = p1.y < p2.y ? p1 : p2;
-                max = p1.y < p2.y ? p2 : p1;
-            }
-            else if (p1.y == p2.y)
-            {
-                min = p1.x < p2.x ? p1 : p2;
-                max = p1.x < p2.x ? p2 : p1;
-            }
-            else
-                return;
-
-            // change?
-            // mozna w sumie nie przechowywac typu constraint,
-            // tylko sam fakt istnienia
-            char constraint;
-            if (NeoGebra.EdgeConstraints.
-                TryGetValue((min, max), out constraint))
+            char? constraint = intPoint.GetConstraintChar(p1, p2);
+            if (constraint != null)
             {
                 intPoint mid = intPoint.middlePoint(p1, p2);
-                g.DrawConstraintIcon(mid, constraint);
+                g.DrawConstraintIcon(mid, (char)constraint);
             }
         }
 

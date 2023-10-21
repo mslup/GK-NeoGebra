@@ -27,7 +27,7 @@ namespace lab1
             MovingEdge,
             MovingPolygon,
             AddingMidpoint,
-            DeletingVertex,
+            Deleting,
             AddingEdgeConstraintH,
             AddingEdgeConstraintV
         };
@@ -84,8 +84,8 @@ namespace lab1
             case States.BuildingPolygon:
                 BuildPolygon(new intPoint(e.X, e.Y));
                 break;
-            case States.DeletingVertex:
-                DeleteVertex(new intPoint(e.X, e.Y));
+            case States.Deleting:
+                DeleteVertexOrConstraint(new intPoint(e.X, e.Y));
                 break;
             case States.AddingEdgeConstraintH:
                 AddHorizontalConstraint();
@@ -105,23 +105,15 @@ namespace lab1
 
             if (state == States.MovingVertex)
             {
-                grabbedPoint.x = MousePos.x;
-                grabbedPoint.y = MousePos.y;
+                MoveVertex();
             }
             if (state == States.MovingEdge)
             {
-                grabbedLine.p1.x += MousePos.x - clickedPoint.x;
-                grabbedLine.p1.y += MousePos.y - clickedPoint.y;
-                grabbedLine.p2.x += MousePos.x - clickedPoint.x;
-                grabbedLine.p2.y += MousePos.y - clickedPoint.y;
+                MoveEdge();
             }
             if (state == States.MovingPolygon)
             {
-                foreach (intPoint p in grabbedPolygon.vertices)
-                {
-                    p.x += MousePos.x - clickedPoint.x;
-                    p.y += MousePos.y - clickedPoint.y;
-                }
+                MovePolygon();
             }
 
             clickedPoint = MousePos;
@@ -180,7 +172,7 @@ namespace lab1
             {
             case Keys.ControlKey:
                 Cursor = Cursors.No;
-                state = States.DeletingVertex;
+                state = States.Deleting;
                 break;
             case Keys.H:
                 Cursor = Cursors.HSplit;

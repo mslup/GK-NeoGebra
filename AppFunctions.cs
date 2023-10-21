@@ -4,23 +4,21 @@ namespace lab1
 {
     partial class NeoGebra
     {
-        
-
         private void CheckForCursorChange()
         {
             bool noObjectHoveredOver = true;
-            intPoint? lastPoint;
+            intPoint? prevPoint;
 
             foreach (Polygon poly in Polygons)
             {
-                lastPoint = poly.vertices.Last();
+                prevPoint = poly.vertices.Last();
                 foreach (intPoint p in poly.vertices)
                 {
-                    if (!MousePos.IsCloseToPoint(p) && 
-                        !MousePos.IsCloseToLine(lastPoint, p) &&
+                    if (!MousePos.IsCloseToPoint(p) &&
+                        !MousePos.IsCloseToLine(prevPoint, p) &&
                         !MousePos.IsInsidePolygon(poly))
                     {
-                        lastPoint = p;
+                        prevPoint = p;
                         continue;
                     }
 
@@ -28,34 +26,42 @@ namespace lab1
                         Cursor = Cursors.SizeAll;
                     noObjectHoveredOver = false;
 
-                    lastPoint = p;
+                    prevPoint = p;
                 }
             }
 
-            if (noObjectHoveredOver && 
-                state != States.DeletingVertex &&
+            if (noObjectHoveredOver &&
+                state != States.Deleting &&
                 state != States.AddingEdgeConstraintV &&
                 state != States.AddingEdgeConstraintH)
                 Cursor = Cursors.Default;
         }
 
-        private void DeleteVertex(intPoint point)
+        private void DeleteVertexOrConstraint(intPoint point)
         {
             Polygon? polyToUpdate = null;
             int polyIndex;
             int pointIndex = 0;
 
-            for (polyIndex = Polygons.Count - 1; polyIndex >= 0; polyIndex--) 
+            for (polyIndex = Polygons.Count - 1; polyIndex >= 0; polyIndex--)
             {
                 Polygon poly = Polygons[polyIndex];
 
                 for (pointIndex = poly.vertices.Count - 1; pointIndex >= 0; pointIndex--)
                 {
                     intPoint p = poly.vertices[pointIndex];
+                    intPoint pPrev = poly.vertices[(pointIndex + 1) % poly.vertices.Count];
 
-                    if (p.IsCloseToPoint(point))
+                    if (point.IsCloseToPoint(p))
                     {
                         polyToUpdate = poly;
+                        p.Farewell();
+                        break;
+                    }
+
+                    if (point.IsCloseToLine(p, pPrev))
+                    {
+                        intPoint.DeleteConstraint(p, pPrev);
                         break;
                     }
                 }
@@ -165,6 +171,56 @@ namespace lab1
             return false;
         }
 
+        private void MoveVertex()
+        {
+            if (!grabbedPoint.IsConstrainedHorizontally())
+                grabbedPoint.y = MousePos.y;
+            if (!grabbedPoint.IsConstrainedVertically())
+                grabbedPoint.x = MousePos.x;
+
+            if (grabbedPoint.IsConstrainedHorizontally() &&
+                grabbedPoint.IsConstrainedVertically())
+            {
+                intPoint? h = grabbedPoint.GetHorizontallyConstrainedNeighbor();
+                intPoint? v = grabbedPoint.GetVerticallyConstrainedNeighbor();
+
+                if (h != null)
+                {
+                    h.y = MousePos.y;
+                }
+                if (v != null)
+                {
+                    v.x = MousePos.x;
+                }
+
+                grabbedPoint.y = MousePos.y;
+                grabbedPoint.x = MousePos.x;
+            }
+        }
+
+        private void MoveEdge()
+        {
+            if (!intPoint.IsNeighborEdgeConstrainedHorizontally(grabbedLine))
+            {
+                grabbedLine.p1.y += MousePos.y - clickedPoint.y;
+                grabbedLine.p2.y += MousePos.y - clickedPoint.y;
+            }
+            if (!intPoint.IsNeighborEdgeConstrainedVertically(grabbedLine))
+            {
+                grabbedLine.p1.x += MousePos.x - clickedPoint.x;
+                grabbedLine.p2.x += MousePos.x - clickedPoint.x;
+            }
+        }
+
+        private void MovePolygon()
+        {
+            foreach (intPoint p in grabbedPolygon.vertices)
+            {
+                p.x += MousePos.x - clickedPoint.x;
+                p.y += MousePos.y - clickedPoint.y;
+            }
+        }
+
         private void AddMidpoint()
         {
             if (grabbedPolygon == null)
@@ -173,11 +229,13 @@ namespace lab1
                 return;
             }
 
+            intPoint.DeleteConstraint(grabbedLine);
+
             intPoint midPoint = intPoint.middlePoint(grabbedLine.p1, grabbedLine.p2);
             int i = 0;
 
             intPoint prevVertex = grabbedPolygon.vertices.Last();
-            foreach (intPoint vertex in grabbedPolygon.vertices) 
+            foreach (intPoint vertex in grabbedPolygon.vertices)
             {
                 if ((prevVertex == grabbedLine.p1 && vertex == grabbedLine.p2) ||
                     (prevVertex == grabbedLine.p2 && vertex == grabbedLine.p1))
@@ -198,12 +256,14 @@ namespace lab1
         {
             intPoint midPoint = intPoint.middlePoint(grabbedLine.p1, grabbedLine.p2);
 
-            grabbedLine.p1.y = midPoint.y;
-            grabbedLine.p2.y = midPoint.y;
-
             intPoint min = grabbedLine.p1.x < grabbedLine.p2.x ? grabbedLine.p1 : grabbedLine.p2;
             intPoint max = grabbedLine.p1.x < grabbedLine.p2.x ? grabbedLine.p2 : grabbedLine.p1;
-            EdgeConstraints[(min, max)] = 'H';
+
+            if (min.SetConstraint(max, intPoint.Constraints.Horizontal))
+            {
+                grabbedLine.p1.y = midPoint.y;
+                grabbedLine.p2.y = midPoint.y;
+            }
 
             state = States.Idle;
         }
@@ -212,12 +272,14 @@ namespace lab1
         {
             intPoint midPoint = intPoint.middlePoint(grabbedLine.p1, grabbedLine.p2);
 
-            grabbedLine.p1.x = midPoint.x;
-            grabbedLine.p2.x = midPoint.x;
-
             intPoint min = grabbedLine.p1.y < grabbedLine.p2.y ? grabbedLine.p1 : grabbedLine.p2;
             intPoint max = grabbedLine.p1.y < grabbedLine.p2.y ? grabbedLine.p2 : grabbedLine.p1;
-            EdgeConstraints[(min, max)] = 'V';
+
+            if (min.SetConstraint(max, intPoint.Constraints.Vertical))
+            {
+                grabbedLine.p1.x = midPoint.x;
+                grabbedLine.p2.x = midPoint.x;
+            }
 
             state = States.Idle;
         }

@@ -31,8 +31,8 @@
             splitContainer1 = new SplitContainer();
             canvas = new PictureBox();
             modeGroupBox = new GroupBox();
-            drawButton = new RadioButton();
-            selectButton = new RadioButton();
+            bresenhamButton = new RadioButton();
+            winformsLineButton = new RadioButton();
             menuStrip1 = new MenuStrip();
             canvasToolStripMenuItem = new ToolStripMenuItem();
             clearToolStripMenuItem = new ToolStripMenuItem();
@@ -80,8 +80,8 @@
             // 
             // modeGroupBox
             // 
-            modeGroupBox.Controls.Add(drawButton);
-            modeGroupBox.Controls.Add(selectButton);
+            modeGroupBox.Controls.Add(bresenhamButton);
+            modeGroupBox.Controls.Add(winformsLineButton);
             modeGroupBox.Dock = DockStyle.Top;
             modeGroupBox.Location = new Point(0, 0);
             modeGroupBox.Name = "modeGroupBox";
@@ -90,29 +90,29 @@
             modeGroupBox.TabStop = false;
             modeGroupBox.Text = "Mode";
             // 
-            // drawButton
+            // bresenhamButton
             // 
-            drawButton.AutoSize = true;
-            drawButton.Dock = DockStyle.Top;
-            drawButton.Location = new Point(3, 38);
-            drawButton.Name = "drawButton";
-            drawButton.Size = new Size(211, 19);
-            drawButton.TabIndex = 1;
-            drawButton.TabStop = true;
-            drawButton.Text = "Draw";
-            drawButton.UseVisualStyleBackColor = true;
+            bresenhamButton.AutoSize = true;
+            bresenhamButton.Dock = DockStyle.Top;
+            bresenhamButton.Location = new Point(3, 38);
+            bresenhamButton.Name = "bresenhamButton";
+            bresenhamButton.Size = new Size(211, 19);
+            bresenhamButton.TabIndex = 1;
+            bresenhamButton.TabStop = true;
+            bresenhamButton.Text = "Bresenham Algorithm";
+            bresenhamButton.UseVisualStyleBackColor = true;
             // 
-            // selectButton
+            // winformsLineButton
             // 
-            selectButton.AutoSize = true;
-            selectButton.Dock = DockStyle.Top;
-            selectButton.Location = new Point(3, 19);
-            selectButton.Name = "selectButton";
-            selectButton.Size = new Size(211, 19);
-            selectButton.TabIndex = 0;
-            selectButton.TabStop = true;
-            selectButton.Text = "Select";
-            selectButton.UseVisualStyleBackColor = true;
+            winformsLineButton.AutoSize = true;
+            winformsLineButton.Dock = DockStyle.Top;
+            winformsLineButton.Location = new Point(3, 19);
+            winformsLineButton.Name = "winformsLineButton";
+            winformsLineButton.Size = new Size(211, 19);
+            winformsLineButton.TabIndex = 0;
+            winformsLineButton.TabStop = true;
+            winformsLineButton.Text = "WinForms Library";
+            winformsLineButton.UseVisualStyleBackColor = true;
             // 
             // menuStrip1
             // 
@@ -171,7 +171,7 @@
         private ToolStripMenuItem canvasToolStripMenuItem;
         private ToolStripMenuItem clearToolStripMenuItem;
         private GroupBox modeGroupBox;
-        private RadioButton drawButton;
-        private RadioButton selectButton;
+        private RadioButton bresenhamButton;
+        private RadioButton winformsLineButton;
     }
 }

@@ -173,43 +173,42 @@ namespace lab1
 
         private void MoveVertex()
         {
-            if (!grabbedPoint.IsConstrainedHorizontally())
-                grabbedPoint.y = MousePos.y;
-            if (!grabbedPoint.IsConstrainedVertically())
-                grabbedPoint.x = MousePos.x;
+            intPoint? h = grabbedPoint.GetHorizontallyConstrainedNeighbor();
+            intPoint? v = grabbedPoint.GetVerticallyConstrainedNeighbor();
 
-            if (grabbedPoint.IsConstrainedHorizontally() &&
-                grabbedPoint.IsConstrainedVertically())
+            if (h != null)
             {
-                intPoint? h = grabbedPoint.GetHorizontallyConstrainedNeighbor();
-                intPoint? v = grabbedPoint.GetVerticallyConstrainedNeighbor();
-
-                if (h != null)
-                {
-                    h.y = MousePos.y;
-                }
-                if (v != null)
-                {
-                    v.x = MousePos.x;
-                }
-
-                grabbedPoint.y = MousePos.y;
-                grabbedPoint.x = MousePos.x;
+                h.y = MousePos.y;
             }
+            if (v != null)
+            {
+                v.x = MousePos.x;
+            }
+
+            grabbedPoint.y = MousePos.y;
+            grabbedPoint.x = MousePos.x;
         }
 
         private void MoveEdge()
         {
-            if (!intPoint.IsNeighborEdgeConstrainedHorizontally(grabbedLine))
-            {
-                grabbedLine.p1.y += MousePos.y - clickedPoint.y;
-                grabbedLine.p2.y += MousePos.y - clickedPoint.y;
-            }
-            if (!intPoint.IsNeighborEdgeConstrainedVertically(grabbedLine))
-            {
-                grabbedLine.p1.x += MousePos.x - clickedPoint.x;
-                grabbedLine.p2.x += MousePos.x - clickedPoint.x;
-            }
+            intPoint? h1 = grabbedLine.p1.GetHorizontallyConstrainedNeighbor();
+            intPoint? v1 = grabbedLine.p1.GetVerticallyConstrainedNeighbor();
+            intPoint? h2 = grabbedLine.p2.GetHorizontallyConstrainedNeighbor();
+            intPoint? v2 = grabbedLine.p2.GetVerticallyConstrainedNeighbor();
+
+            if (h1 != null && h1 != grabbedLine.p2)
+                h1.y += MousePos.y - clickedPoint.y;
+            else if (v1 != null && v1 != grabbedLine.p2)
+                v1.x += MousePos.x - clickedPoint.x;
+            if (h2 != null && h2 != grabbedLine.p1)
+                h2.y += MousePos.y - clickedPoint.y;
+            else if (v2 != null && v2 != grabbedLine.p1)
+                v2.x += MousePos.x - clickedPoint.x;
+
+            grabbedLine.p1.y += MousePos.y - clickedPoint.y;
+            grabbedLine.p2.y += MousePos.y - clickedPoint.y;
+            grabbedLine.p1.x += MousePos.x - clickedPoint.x;
+            grabbedLine.p2.x += MousePos.x - clickedPoint.x;
         }
 
         private void MovePolygon()

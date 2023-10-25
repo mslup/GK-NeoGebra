@@ -7,17 +7,19 @@ namespace lab1
 {
     public partial class NeoGebra : Form
     {
+        public const bool Debug = false;
+
         public const int eps = 8;
         public static intPoint MousePos
         {
             get;
             private set;
         }
-        public static Dictionary<(intPoint, intPoint), char> EdgeConstraints
-        {
-            get;
-            private set;
-        }
+        //public static Dictionary<(intPoint, intPoint), char> EdgeConstraints
+        //{
+        //    get;
+        //    private set;
+        //}
 
         private enum States
         {
@@ -33,6 +35,12 @@ namespace lab1
         };
         private States state;
 
+        public enum LineModes
+        {
+            WinForms, Bresenham
+        };
+        public static LineModes linemode { get; private set; }
+
         private List<intPoint> Points = new();
         private List<Polygon> Polygons = new();
         private intPoint grabbedPoint = new();
@@ -45,8 +53,20 @@ namespace lab1
             InitializeComponent();
             InitializeCanvas();
             MousePos = new();
-            EdgeConstraints = new();
+            //EdgeConstraints = new();
             state = States.Idle;
+            linemode = LineModes.WinForms;
+            winformsLineButton.Checked = true;
+
+            if (Debug)
+            {
+                linemode = LineModes.Bresenham;
+                BuildPolygon(new intPoint(287, 113));
+                BuildPolygon(new intPoint(486, 194));
+                BuildPolygon(new intPoint(259, 292));
+                BuildPolygon(new intPoint(287, 113));
+            }
+
         }
 
         private void InitializeCanvas()
@@ -209,6 +229,18 @@ namespace lab1
             }
 
             (sender as Control).Invalidate();
+        }
+
+        private void winformsLineButton_CheckedChanged(object sender, EventArgs e)
+        {
+            linemode = LineModes.WinForms;
+            canvas.Invalidate();
+        }
+
+        private void bresenhamButton_CheckedChanged(object sender, EventArgs e)
+        {
+            linemode = LineModes.Bresenham;
+            canvas.Invalidate();
         }
     }
 }

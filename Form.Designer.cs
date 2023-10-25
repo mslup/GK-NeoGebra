@@ -88,11 +88,12 @@
             modeGroupBox.Size = new Size(217, 100);
             modeGroupBox.TabIndex = 0;
             modeGroupBox.TabStop = false;
-            modeGroupBox.Text = "Mode";
+            modeGroupBox.Text = "Line drawing mode";
             // 
             // bresenhamButton
             // 
             bresenhamButton.AutoSize = true;
+            bresenhamButton.Checked = true;
             bresenhamButton.Dock = DockStyle.Top;
             bresenhamButton.Location = new Point(3, 38);
             bresenhamButton.Name = "bresenhamButton";
@@ -101,6 +102,7 @@
             bresenhamButton.TabStop = true;
             bresenhamButton.Text = "Bresenham Algorithm";
             bresenhamButton.UseVisualStyleBackColor = true;
+            bresenhamButton.CheckedChanged += bresenhamButton_CheckedChanged;
             // 
             // winformsLineButton
             // 
@@ -110,9 +112,9 @@
             winformsLineButton.Name = "winformsLineButton";
             winformsLineButton.Size = new Size(211, 19);
             winformsLineButton.TabIndex = 0;
-            winformsLineButton.TabStop = true;
             winformsLineButton.Text = "WinForms Library";
             winformsLineButton.UseVisualStyleBackColor = true;
+            winformsLineButton.CheckedChanged += winformsLineButton_CheckedChanged;
             // 
             // menuStrip1
             // 

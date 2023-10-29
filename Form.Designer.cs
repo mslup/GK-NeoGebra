@@ -32,7 +32,7 @@
             canvas = new PictureBox();
             offsetGroupBox = new GroupBox();
             offsetSlider = new TrackBar();
-            checkBox1 = new CheckBox();
+            offsetCheckBox = new CheckBox();
             modeGroupBox = new GroupBox();
             bresenhamButton = new RadioButton();
             winformsLineButton = new RadioButton();
@@ -87,7 +87,7 @@
             // offsetGroupBox
             // 
             offsetGroupBox.Controls.Add(offsetSlider);
-            offsetGroupBox.Controls.Add(checkBox1);
+            offsetGroupBox.Controls.Add(offsetCheckBox);
             offsetGroupBox.Dock = DockStyle.Top;
             offsetGroupBox.Location = new Point(0, 64);
             offsetGroupBox.Name = "offsetGroupBox";
@@ -110,14 +110,15 @@
             // 
             // checkBox1
             // 
-            checkBox1.AutoSize = true;
-            checkBox1.Dock = DockStyle.Top;
-            checkBox1.Location = new Point(3, 19);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(211, 19);
-            checkBox1.TabIndex = 0;
-            checkBox1.Text = "Draw offset polygon";
-            checkBox1.UseVisualStyleBackColor = true;
+            offsetCheckBox.AutoSize = true;
+            offsetCheckBox.Dock = DockStyle.Top;
+            offsetCheckBox.Location = new Point(3, 19);
+            offsetCheckBox.Name = "checkBox1";
+            offsetCheckBox.Size = new Size(211, 19);
+            offsetCheckBox.TabIndex = 0;
+            offsetCheckBox.Text = "Draw offset polygon";
+            offsetCheckBox.UseVisualStyleBackColor = true;
+            offsetCheckBox.CheckedChanged += offsetCheckBox_CheckedChanged;
             // 
             // modeGroupBox
             // 
@@ -221,6 +222,6 @@
         private RadioButton winformsLineButton;
         private GroupBox offsetGroupBox;
         private TrackBar offsetSlider;
-        private CheckBox checkBox1;
+        private CheckBox offsetCheckBox;
     }
 }

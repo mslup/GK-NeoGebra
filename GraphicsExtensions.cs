@@ -38,35 +38,35 @@ namespace lab1
         private static Pen debugPen = new Pen(Color.Red, pointWidth);
         private static SolidBrush debugBrush = new SolidBrush(Color.Red);
 
-        public static void DrawPoint(this Graphics g, intPoint p, Pen? pen = null)
+        public static void DrawPoint(this Graphics g, Vertex p, bool highlight = true)
         {
-            if (pen == null)
-                pen = pointPen;
+            //if (pen == null)
+            var pen = pointPen;
 
-            if (NeoGebra.MousePos.IsCloseToPoint(p))
+            if (highlight && NeoGebra.MousePos.IsCloseToPoint(p))
                 g.DrawEllipse(hlPointPen,
-                    p.x - hlPointWidth / 2,
-                    p.y - hlPointWidth / 2,
+                    p.X - hlPointWidth / 2,
+                    p.Y - hlPointWidth / 2,
                     hlPointWidth, hlPointWidth);
 
             g.DrawEllipse(pen,
-                p.x - pointWidth / 2,
-                p.y - pointWidth / 2,
+                p.X - pointWidth / 2,
+                p.Y - pointWidth / 2,
                 pointWidth, pointWidth);
 
             if (NeoGebra.Debug)
-                g.DrawString($"{p.x}, {p.y}",
+                g.DrawString($"{p.X}, {p.Y}",
                     new Font("Arial", 10),
                     new SolidBrush(Color.Black),
-                    new Point(p.x + 5, p.y + 5));
+                    new Point((int)p.X + 5, (int)p.Y + 5));
         }
 
-        public static void DrawLine(this Graphics g, intPoint p1, intPoint p2)
+        public static void DrawLine(this Graphics g, Vertex p1, Vertex p2, bool highlight = true)
         {
-            Point P1 = new Point(p1.x, p1.y);
-            Point P2 = new Point(p2.x, p2.y);
+            Point P1 = new Point(p1.X, p1.Y);
+            Point P2 = new Point(p2.X, p2.Y);
 
-            if (NeoGebra.MousePos.IsCloseToLine(p1, p2))
+            if (highlight && NeoGebra.MousePos.IsCloseToLine(p1, p2))
                 g.DrawLine(hlLinePen, P1, P2);
 
             switch (NeoGebra.linemode)
@@ -79,10 +79,10 @@ namespace lab1
                 break;
             }
 
-            char? constraint = intPoint.GetConstraintChar(p1, p2);
+            char? constraint = Vertex.GetConstraintChar(p1, p2);
             if (constraint != null)
             {
-                intPoint mid = intPoint.middlePoint(p1, p2);
+                Vertex mid = Vertex.middlePoint(p1, p2);
                 g.DrawConstraintIcon(mid, (char)constraint);
             }
         }
@@ -149,19 +149,19 @@ namespace lab1
             g.FillRectangle(brush, x, y, 1, 1);
         }
 
-        private static void DrawConstraintIcon(this Graphics g, intPoint p, char constraint)
+        private static void DrawConstraintIcon(this Graphics g, Vertex p, char constraint)
         {
             g.TextRenderingHint = TextRenderingHint.AntiAlias;
             g.DrawEllipse(iconPen1,
-                p.x - iconWidth1 / 2,
-                p.y - iconWidth1 / 2,
+                p.X - iconWidth1 / 2,
+                p.Y - iconWidth1 / 2,
                 iconWidth1, iconWidth1);
             g.DrawEllipse(iconPen2,
-                p.x - iconWidth2 / 2,
-                p.y - iconWidth2 / 2,
+                p.X - iconWidth2 / 2,
+                p.Y - iconWidth2 / 2,
                 iconWidth2, iconWidth2);
             g.DrawString($"{constraint}", iconFont,
-                iconBrush, new PointF(p.x - iconWidth1 / 2 - 2, p.y - iconWidth1 / 2 - 4));
+                iconBrush, new PointF(p.X - iconWidth1 / 2 - 2, p.Y - iconWidth1 / 2 - 4));
         }
 
         public static void FillPolygon(this Graphics g, Polygon poly)
@@ -187,45 +187,40 @@ namespace lab1
             if (offset == 0)
                 return;
 
-            (var drawMe, var meToo) = poly.CalculateOffsetPolygon(offset);
+            var offsetPolygon = poly.CalculateOffsetPolygon(offset);
 
-            g.DrawPolygon(drawMe, false);
-            
-            foreach (var pt in meToo)
-            {
-                g.DrawPoint(pt, debugPen);
-            }
+            g.DrawPolygon(offsetPolygon, false, false);
         }
 
-        private static void DrawPolygon(this Graphics g, Polygon poly, bool fill = true)
+        private static void DrawPolygon(this Graphics g, Polygon poly, bool fill = true, bool highlight = true)
         {
-            intPoint lastPoint = new intPoint();
+            Vertex lastPoint = new Vertex();
             if (fill)
                 g.FillPolygon(poly);
 
             bool start = true;
-            foreach (intPoint p in poly.vertices)
+            foreach (Vertex p in poly.vertices)
             {
                 if (!start)
                 {
-                    g.DrawLine(lastPoint, p);
-                    g.DrawPoint(lastPoint);
+                    g.DrawLine(lastPoint, p, highlight);
+                    g.DrawPoint(lastPoint, highlight);
                 }
                 start = false;
                 lastPoint = p;
             }
 
-            g.DrawLine(lastPoint, poly.vertices.First());
-            g.DrawPoint(poly.vertices.First());
-            g.DrawPoint(lastPoint);
+            g.DrawLine(lastPoint, poly.vertices.First(), highlight);
+            g.DrawPoint(poly.vertices.First(), highlight);
+            g.DrawPoint(lastPoint, highlight);
         }
 
-        public static void DrawPolygonInProgress(this Graphics g, List<intPoint> Points)
+        public static void DrawPolygonInProgress(this Graphics g, List<Vertex> Points)
         {
             bool start = true;
-            intPoint lastPoint = new intPoint();
+            Vertex lastPoint = new Vertex();
 
-            foreach (intPoint p in Points)
+            foreach (Vertex p in Points)
             {
                 if (!start)
                 {

@@ -11,7 +11,7 @@ namespace lab1
 
         public const int eps = 8;
         private int offset = 10;
-        public static intPoint MousePos
+        public static Vertex MousePos
         {
             get;
             private set;
@@ -38,13 +38,13 @@ namespace lab1
         };
         public static LineModes linemode { get; private set; }
 
-        private List<intPoint> Points = new();
+        private List<Vertex> Points = new();
         private List<Polygon> Polygons = new();
         private List<Polygon> OffsetPolygons = new();
-        private intPoint grabbedPoint = new();
-        private (intPoint p1, intPoint p2) grabbedLine = new();
+        private Vertex grabbedPoint = new();
+        private (Vertex p1, Vertex p2) grabbedLine = new();
         private Polygon? grabbedPolygon = null;
-        private intPoint? clickedPoint;
+        private Vertex? clickedPoint;
 
         public NeoGebra()
         {
@@ -56,63 +56,63 @@ namespace lab1
             linemode = LineModes.WinForms;
             winformsLineButton.Checked = true;
             offsetSlider.Value = offset;
+            offsetCheckBox.Checked = true;
         }
 
         private void InitializeScene()
         {
 
-            Polygons.Add(new Polygon(new List<intPoint>()
+            //Polygons.Add(new Polygon(new List<Vertex>()
+            //{
+            //    new Vertex(132, 295),
+            //    new Vertex(440, 316),
+            //    new Vertex(316, 103),
+            //    new Vertex(330, 236),
+            //    new Vertex(232, 228),
+            //    new Vertex(272, 118)
+            //}));
+
+
+            Polygons.Add(new Polygon(new List<Vertex>()
             {
-                new intPoint(160, 81),
-                new intPoint(213, 208),
-                new intPoint(174, 261),
-                new intPoint(184, 172),
-                new intPoint(130, 311),
-                new intPoint(429, 293)
+                new Vertex(88, 56),
+                new Vertex(197, 60),
+                new Vertex(230, 151),
+                new Vertex(143, 151),
+                new Vertex(60, 235)
             }));
 
-            //canvas = new PictureBox();
+            TryToGrabLine(new Vertex(200, 151));
+            SetHorizontalConstraint();
 
-            //Polygons.Add(new Polygon(new List<intPoint>()
-            //{
-            //    new intPoint(88, 56),
-            //    new intPoint(197, 60),
-            //    new intPoint(230, 151),
-            //    new intPoint(143, 151),
-            //    new intPoint(60, 235)
-            //}));
+            Polygons.Add(new Polygon(new List<Vertex>()
+            {
+                new Vertex(351, 198),
+                new Vertex(351, 109),
+                new Vertex(415, 40),
+                new Vertex(497, 100),
+                new Vertex(464, 197)
+            }));
 
-            //TryToGrabLine(new intPoint(200, 151));
-            //SetHorizontalConstraint();
+            TryToGrabLine(new Vertex(351, 150));
+            SetVerticalConstraint();
 
-            //Polygons.Add(new Polygon(new List<intPoint>()
-            //{
-            //    new intPoint(351, 198),
-            //    new intPoint(351, 109),
-            //    new intPoint(415, 40),
-            //    new intPoint(497, 100),
-            //    new intPoint(464, 197)
-            //}));
+            Polygons.Add(new Polygon(new List<Vertex>()
+            {
+                new Vertex(195, 379),
+                new Vertex(165, 292),
+                new Vertex(250, 225),
+                new Vertex(250, 333),
+                new Vertex(387, 275),
+                new Vertex(387, 379)
+            }));
 
-            //TryToGrabLine(new intPoint(351, 150));
-            //SetVerticalConstraint();
-
-            //Polygons.Add(new Polygon(new List<intPoint>()
-            //{
-            //    new intPoint(195, 379),
-            //    new intPoint(165, 292),
-            //    new intPoint(250, 225),
-            //    new intPoint(250, 333),
-            //    new intPoint(387, 275),
-            //    new intPoint(387, 379)
-            //}));
-
-            //TryToGrabLine(new intPoint(250, 300));
-            //SetVerticalConstraint();
-            //TryToGrabLine(new intPoint(387, 300));
-            //SetVerticalConstraint();
-            //TryToGrabLine(new intPoint(200, 379));
-            //SetHorizontalConstraint();
+            TryToGrabLine(new Vertex(250, 300));
+            SetVerticalConstraint();
+            TryToGrabLine(new Vertex(387, 300));
+            SetVerticalConstraint();
+            TryToGrabLine(new Vertex(200, 379));
+            SetHorizontalConstraint();
         }
 
         private void canvas_Paint(object sender, PaintEventArgs e)
@@ -128,7 +128,7 @@ namespace lab1
                 if (Points.Count == 0)
                     return;
 
-                intPoint lastPoint = Points.Last();
+                Vertex lastPoint = Points.Last();
 
                 g.DrawLine(lastPoint, MousePos);
                 g.DrawPoint(lastPoint);
@@ -163,7 +163,7 @@ namespace lab1
 
         private void canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            MousePos = new intPoint(e.X, e.Y);
+            MousePos = new Vertex(e.X, e.Y);
             CheckForCursorChange();
 
             if (state == States.MovingVertex)
@@ -193,7 +193,7 @@ namespace lab1
 
         private void canvas_MouseDown(object sender, MouseEventArgs e)
         {
-            clickedPoint = new intPoint(e.X, e.Y);
+            clickedPoint = new Vertex(e.X, e.Y);
 
             if (state == States.Idle ||
                 state == States.SettingEdgeConstraintH ||
@@ -263,7 +263,7 @@ namespace lab1
 
         private void canvas_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            clickedPoint = new intPoint(e.X, e.Y);
+            clickedPoint = new Vertex(e.X, e.Y);
 
             if (TryToGrabLine(clickedPoint))
             {
@@ -291,7 +291,23 @@ namespace lab1
         private void offsetSlider_Scroll(object sender, EventArgs e)
         {
             offset = offsetSlider.Value;
-            
+
+            splitContainer.Refresh();
+        }
+
+        private void offsetCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (offsetCheckBox.Checked)
+            {
+                offset = offsetSlider.Value; 
+                offsetSlider.Enabled = true;
+            }
+            else
+            {
+                offset = 0; 
+                offsetSlider.Enabled = false;
+            }
+
             splitContainer.Refresh();
         }
     }

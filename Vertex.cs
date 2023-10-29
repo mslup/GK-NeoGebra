@@ -12,12 +12,20 @@ using System.Threading.Tasks;
 
 namespace lab1
 {
-    public class intPoint
+    public class Vertex
     {
-        public int x; public int y;
-        public bool isRemoved;
+        public double x; public double y;
+        public int X
+        {
+            get => (int)x; set => x = value;
+        }
+        public int Y
+        {
+            get => (int)y; set => y = value;
+        }
 
-        private intPoint?[] constraints;
+        //public bool isRemoved;
+        private Vertex?[] constraints;
 
         public enum Constraints
         {
@@ -25,58 +33,64 @@ namespace lab1
         };
 
 
-        public intPoint()
+        public Vertex()
         {
-            x = 0;
-            y = 0;
-            isRemoved = false;
-            constraints = new intPoint?[2];
+            X = 0;
+            Y = 0;
+            //isRemoved = false;
+            constraints = new Vertex?[2];
             constraints[0] = constraints[1] = null;
         }
 
-        public intPoint(int xx, int yy) : this()
+        public Vertex(int x, int y) : this()
         {
-            x = xx;
-            y = yy;
+            X = x;
+            Y = y;
         }
 
-        public static intPoint middlePoint(intPoint p1, intPoint p2)
+        public Vertex(double x, double y) : this()
         {
-            return new intPoint((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+            this.x = x;
+            this.y = y;
         }
 
-        public double Distance(intPoint other)
+        public static Vertex middlePoint(Vertex p1, Vertex p2)
+        {
+            return new Vertex((p1.X + p2.X) / 2, (p1.Y + p2.Y) / 2);
+        }
+
+        public double Distance(Vertex other)
         {
             return Math.Sqrt(Math.Pow(x - other.x, 2) + Math.Pow(y - other.y, 2));
         }
 
-        public bool IsCloseToPoint(intPoint other)
+        public bool IsCloseToPoint(Vertex other)
         {
-            return Math.Abs(this.x - other.x) < NeoGebra.eps &&
-                Math.Abs(this.y - other.y) < NeoGebra.eps;
+            return Math.Abs(this.X - other.X) < NeoGebra.eps &&
+                Math.Abs(this.Y - other.Y) < NeoGebra.eps;
         }
 
-        public bool IsCloseToLine(intPoint p1, intPoint p2)
+        public bool IsCloseToLine(Vertex p1, Vertex p2)
         {
-            intPoint minX = p1.x < p2.x ? p1 : p2;
-            intPoint maxX = p1.x < p2.x ? p2 : p1;
-            intPoint minY = p1.y < p2.y ? p1 : p2;
-            intPoint maxY = p1.y < p2.y ? p2 : p1;
+            Vertex minX = p1.X < p2.X ? p1 : p2;
+            Vertex maxX = p1.X < p2.X ? p2 : p1;
+            Vertex minY = p1.Y < p2.Y ? p1 : p2;
+            Vertex maxY = p1.Y < p2.Y ? p2 : p1;
 
             // Check if point has the chance to be close to a segment
             if (!(
                // Is the point inside the segment's bounding rectangle 
-               (minX.x <= x && x <= maxX.x && minY.y <= y && y <= maxY.y) ||
+               (minX.X <= X && X <= maxX.X && minY.Y <= Y && Y <= maxY.Y) ||
                // If the line is vertical, is Y coordinate close
-               (Math.Abs(p2.x - p1.x) < NeoGebra.eps && minY.y <= y && y <= maxY.y) ||
+               (Math.Abs(p2.X - p1.X) < NeoGebra.eps && minY.Y <= Y && Y <= maxY.Y) ||
                // If horizontal, is X coordinate close
-               (Math.Abs(p2.y - p1.y) < NeoGebra.eps && minX.x <= x && x <= maxX.x)
+               (Math.Abs(p2.Y - p1.Y) < NeoGebra.eps && minX.X <= X && X <= maxX.X)
                ))
                 return false;
 
             // Calculate distance
-            double dist = Math.Abs((p2.x - p1.x) * (p1.y - y) - (p1.x - x) * (p2.y - p1.y)) /
-                 Math.Sqrt(Math.Pow(p2.x - p1.x, 2) + Math.Pow(p2.y - p1.y, 2));
+            double dist = Math.Abs((p2.X - p1.X) * (p1.Y - Y) - (p1.X - X) * (p2.Y - p1.Y)) /
+                 Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
 
             return dist < NeoGebra.eps;
         }
@@ -85,16 +99,16 @@ namespace lab1
         {
             if (poly == null) return false;
 
-            intPoint prevVertex = poly.vertices.Last();
+            Vertex prevVertex = poly.vertices.Last();
             int above = 0;
 
-            foreach (intPoint vertex in poly.vertices)
+            foreach (Vertex vertex in poly.vertices)
             {
-                intPoint min = prevVertex.x < vertex.x ? prevVertex : vertex;
-                intPoint max = prevVertex.x < vertex.x ? vertex : prevVertex;
+                Vertex min = prevVertex.X < vertex.X ? prevVertex : vertex;
+                Vertex max = prevVertex.X < vertex.X ? vertex : prevVertex;
                 prevVertex = vertex;
 
-                if (min.x > x || x > max.x)
+                if (min.X >= X || X > max.X)
                     continue;
 
                 if (IsRightTurn(min, max, this))
@@ -105,13 +119,13 @@ namespace lab1
             return above != 0 && above % 2 != 0;
         }
 
-        public static bool IsRightTurn(intPoint P, intPoint Q, intPoint R)
+        public static bool IsRightTurn(Vertex P, Vertex Q, Vertex R)
         {
-            return (Q.y - P.y) * (R.x - Q.x) -
-                (Q.x - P.x) * (R.y - Q.y) < 0;
+            return (Q.Y - P.Y) * (R.X - Q.X) -
+                (Q.X - P.X) * (R.Y - Q.Y) < 0;
         }
 
-        public static bool SetConstraint(intPoint P, intPoint Q, Constraints croissant)
+        public static bool SetConstraint(Vertex P, Vertex Q, Constraints croissant)
         {
             if (P.constraints[(int)croissant] != null ||
                 Q.constraints[(int)croissant] != null)
@@ -122,12 +136,12 @@ namespace lab1
             return true;
         }
 
-        public bool SetConstraint(intPoint other, Constraints croissant)
+        public bool SetConstraint(Vertex other, Constraints croissant)
         {
             return SetConstraint(this, other, croissant);
         }
 
-        public static void DeleteConstraint(intPoint P, intPoint Q)
+        public static void DeleteConstraint(Vertex P, Vertex Q)
         {
             if (P.constraints[0] == Q)
             {
@@ -141,12 +155,12 @@ namespace lab1
             }
         }
 
-        public static void DeleteConstraint((intPoint p1, intPoint p2) line)
+        public static void DeleteConstraint((Vertex p1, Vertex p2) line)
         {
             DeleteConstraint(line.p1, line.p2);
         }
 
-        public void DeleteConstraint(intPoint other)
+        public void DeleteConstraint(Vertex other)
         {
             DeleteConstraint(this, other);
         }
@@ -166,18 +180,18 @@ namespace lab1
             return constraints[(int)Constraints.Vertical] != null;
         }
 
-        public intPoint? GetHorizontallyConstrainedNeighbor()
+        public Vertex? GetHorizontallyConstrainedNeighbor()
         {
             return constraints[(int)Constraints.Horizontal];
         }
 
-        public intPoint? GetVerticallyConstrainedNeighbor()
+        public Vertex? GetVerticallyConstrainedNeighbor()
         {
             return constraints[(int)Constraints.Vertical];
         }
 
         public static bool IsNeighborEdgeConstrainedHorizontally
-            ((intPoint p1, intPoint p2) line)
+            ((Vertex p1, Vertex p2) line)
         {
             if (line.p1.constraints[(int)Constraints.Horizontal] == line.p2)
                 return false;
@@ -192,7 +206,7 @@ namespace lab1
         }
         
         public static bool IsNeighborEdgeConstrainedVertically
-            ((intPoint p1, intPoint p2) line)
+            ((Vertex p1, Vertex p2) line)
         {
             if (line.p1.constraints[(int)Constraints.Vertical] == line.p2)
                 return false;
@@ -206,7 +220,7 @@ namespace lab1
             return false;
         }
 
-        public static char? GetConstraintChar(intPoint p1, intPoint p2)
+        public static char? GetConstraintChar(Vertex p1, Vertex p2)
         {
             if (p1.constraints[(int)Constraints.Vertical] == p2)
                 return 'V';
@@ -228,6 +242,11 @@ namespace lab1
                 constraints[1].constraints[1] = null;
                 constraints[1] = null;
             }
+        }
+
+        public override string ToString()
+        {
+            return $"({x}, {y})";
         }
     }
 }

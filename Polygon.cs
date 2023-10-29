@@ -15,15 +15,14 @@ namespace lab1
 {
     public class Polygon
     {
-        public List<intPoint> vertices;
-        private List<intPoint> offsetVertices;
-        private Dictionary<intPoint, intPoint> nexts;
-        private Dictionary<int, HashSet<(int, intPoint)>> intersections;
+        public List<Vertex> vertices;
+        private List<Vertex> offsetVertices;
+        private Dictionary<int, HashSet<(int idx, Vertex v)>> intersections;
         private GraphicsPath? path;
 
-        public Polygon(List<intPoint> vertices)
+        public Polygon(List<Vertex> vertices)
         {
-            this.vertices = new List<intPoint>();
+            this.vertices = new List<Vertex>();
             this.vertices.AddRange(vertices);
             path = null;
         }
@@ -35,9 +34,9 @@ namespace lab1
             Point[] points = new Point[vertices.Count];
             byte[] types = new byte[vertices.Count];
             int it = 0;
-            foreach (intPoint point in vertices)
+            foreach (Vertex point in vertices)
             {
-                points[it] = new Point(point.x, point.y);
+                points[it] = new Point(point.X, point.Y);
                 types[it] = 1;
                 it++;
             }
@@ -46,9 +45,9 @@ namespace lab1
             return path;
         }
 
-        public (Polygon, List<intPoint>) CalculateOffsetPolygon(int offset)
+        public Polygon CalculateOffsetPolygon(int offset)
         {
-            offsetVertices = new List<intPoint>();
+            offsetVertices = new List<Vertex>();
             int n = vertices.Count;
             int outer_ccw = GetClockwiseness();
 
@@ -58,14 +57,14 @@ namespace lab1
                 int prev = (i + n - 1) % n;
                 int next = (i + 1) % n;
 
-                double vnX = vertices[next].x - vertices[i].x;
-                double vnY = vertices[next].y - vertices[i].y;
+                double vnX = vertices[next].X - vertices[i].X;
+                double vnY = vertices[next].Y - vertices[i].Y;
                 Vector2 vnn = Vector2.Normalize(new Vector2((float)vnX, (float)vnY));
                 double nnnX = vnn.Y;
                 double nnnY = -vnn.X;
 
-                double vpX = vertices[i].x - vertices[prev].x;
-                double vpY = vertices[i].y - vertices[prev].y;
+                double vpX = vertices[i].X - vertices[prev].X;
+                double vpY = vertices[i].Y - vertices[prev].Y;
                 Vector2 vpn = Vector2.Normalize(new Vector2((float)vpX, (float)vpY));
                 double npnX = vpn.Y;
                 double npnY = -vpn.X;
@@ -77,52 +76,64 @@ namespace lab1
                 double bislen = offset / (double)Math.Sqrt((1 + nnnX * npnX + nnnY * npnY) / 2);
 
                 int threshold = (int)1e6;
-                int x = (int)(vertices[i].x + bislen * bisn.X);
+                int x = (int)(vertices[i].X + bislen * bisn.X);
                 if (x >= int.MaxValue - threshold || x <= int.MinValue + threshold)
                     x /= 8;
-                int y = (int)(vertices[i].y + bislen * bisn.Y);
+                int y = (int)(vertices[i].Y + bislen * bisn.Y);
                 if (y >= int.MaxValue - threshold || y <= int.MinValue + threshold)
                     y /= 8;
 
-                offsetVertices.Add(new intPoint(x, y));
+                offsetVertices.Add(new Vertex(x, y));
             }
 
-            var inters = GetIntersections(offsetVertices);
-            var ret = new List<intPoint>();
+            GetIntersections(offsetVertices);
+            var ret = new List<Vertex>();
 
+            // Find vertices of the offset polygon
             int index = 0;
-            intPoint p = offsetVertices[index];
-            intPoint first = p;
+            Vertex p = offsetVertices[index];
+            Vertex first = p;
             ret.Add(p);
+
+            bool goToNextNotIntersection = false;
 
             while (p != first || ret.Count < 2)
             {
+                goToNextNotIntersection = false;
                 if (intersections.ContainsKey(index))
                 {
-                    (int newIndex, intPoint newP) = intersections[index].MinBy(((int idx, intPoint pp) val) => p.Distance(val.pp));
-                    if (newP != p)
-                        (index, p) = (newIndex, newP);
-                    else
+                    var filtered = intersections[index].
+                        Where(val => p.Distance(offsetVertices[index]) < val.v.Distance(offsetVertices[index]));
+                    if (filtered.Any())
                     {
-                        index = (index + 1) % n;
-                        p = offsetVertices[index];
+                        (int newIndex, Vertex newP) = filtered.MinBy(val => p.Distance(val.v));
+                        if (newP != p)
+                            (index, p) = (newIndex, newP);
+                        else
+                            goToNextNotIntersection = true;
                     }
+                    else
+                        goToNextNotIntersection = true;
                 }
                 else
+                    goToNextNotIntersection = true;
+
+                if (goToNextNotIntersection)
                 {
                     index = (index + 1) % n;
                     p = offsetVertices[index];
                 }
+
                 ret.Add(p);
             }
 
-            return (new Polygon(ret), new());
+            return new Polygon(ret);
         }
 
 
-        private List<intPoint> GetIntersections(List<intPoint> points)
+        private List<Vertex> GetIntersections(List<Vertex> points)
         {
-            List<intPoint> ret = new();
+            List<Vertex> ret = new();
             intersections = new();
 
             int n = points.Count;
@@ -138,7 +149,7 @@ namespace lab1
                     //if (i == j || i == jNext || j == iNext)
                     //    continue;
 
-                    intPoint? intersection = GetIntersection(iSegment, jSegment);
+                    Vertex? intersection = GetIntersection(iSegment, jSegment);
                     if (intersection != null)
                     {
                         if (!intersections.ContainsKey(i))
@@ -157,17 +168,17 @@ namespace lab1
             return ret;
         }
 
-        private intPoint? GetIntersection((intPoint p1, intPoint p2) seg1, (intPoint p1, intPoint p2) seg2)
+        private Vertex? GetIntersection((Vertex p1, Vertex p2) seg1, (Vertex p1, Vertex p2) seg2)
         {
-            double x1 = seg1.p1.x;
-            double y1 = seg1.p1.y;
-            double x2 = seg1.p2.x;
-            double y2 = seg1.p2.y;
+            double x1 = seg1.p1.X;
+            double y1 = seg1.p1.Y;
+            double x2 = seg1.p2.X;
+            double y2 = seg1.p2.Y;
 
-            double x3 = seg2.p1.x;
-            double y3 = seg2.p1.y;
-            double x4 = seg2.p2.x;
-            double y4 = seg2.p2.y;
+            double x3 = seg2.p1.X;
+            double y3 = seg2.p1.Y;
+            double x4 = seg2.p2.X;
+            double y4 = seg2.p2.Y;
 
             double denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
 
@@ -181,7 +192,7 @@ namespace lab1
                 py >= Math.Min(y1, y2) && py <= Math.Max(y1, y2) && py >= Math.Min(y3, y4) && py <= Math.Max(y3, y4) &&
                 (px, py) != (x1, y1) && (px, py) != (x2, y2) && (px, py) != (x3, y3) && (px, py) != (x4, y4))
             {
-                return new intPoint((int)px, (int)py);
+                return new Vertex(px, py);
             }
 
             return null;
@@ -198,7 +209,7 @@ namespace lab1
                 int prev = (i + n - 1) % n;
                 int next = (i + 1) % n;
 
-                if (intPoint.IsRightTurn(vertices[prev], vertices[i], vertices[next]))
+                if (Vertex.IsRightTurn(vertices[prev], vertices[i], vertices[next]))
                     rightTurns++;
                 else
                     leftTurns++;

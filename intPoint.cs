@@ -45,6 +45,11 @@ namespace lab1
             return new intPoint((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
         }
 
+        public double Distance(intPoint other)
+        {
+            return Math.Sqrt(Math.Pow(x - other.x, 2) + Math.Pow(y - other.y, 2));
+        }
+
         public bool IsCloseToPoint(intPoint other)
         {
             return Math.Abs(this.x - other.x) < NeoGebra.eps &&

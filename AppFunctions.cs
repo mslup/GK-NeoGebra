@@ -32,14 +32,15 @@ namespace lab1
 
             if (noObjectHoveredOver &&
                 state != States.Deleting &&
-                state != States.AddingEdgeConstraintV &&
-                state != States.AddingEdgeConstraintH)
+                state != States.SettingEdgeConstraintV &&
+                state != States.SettingEdgeConstraintH)
                 Cursor = Cursors.Default;
         }
 
-        private void DeleteVertexOrConstraint(intPoint point)
+        private void Delete()
         {
             Polygon? polyToUpdate = null;
+            Polygon? polyToDelete = null;
             int polyIndex;
             int pointIndex = 0;
 
@@ -52,21 +53,27 @@ namespace lab1
                     intPoint p = poly.vertices[pointIndex];
                     intPoint pPrev = poly.vertices[(pointIndex + 1) % poly.vertices.Count];
 
-                    if (point.IsCloseToPoint(p))
+                    if (clickedPoint.IsCloseToPoint(p))
                     {
                         polyToUpdate = poly;
                         p.Farewell();
                         break;
                     }
 
-                    if (point.IsCloseToLine(p, pPrev))
+                    if (clickedPoint.IsCloseToLine(p, pPrev))
                     {
                         intPoint.DeleteConstraint(p, pPrev);
                         break;
                     }
+
+                    if (clickedPoint.IsInsidePolygon(poly))
+                    {
+                        polyToDelete = poly;
+                        break;
+                    }
                 }
 
-                if (polyToUpdate != null)
+                if (polyToUpdate != null || polyToDelete != null)
                     break;
             }
 
@@ -76,9 +83,13 @@ namespace lab1
                 if (polyToUpdate.vertices.Count == 0)
                     Polygons.RemoveAt(polyIndex);
             }
+            else if (polyToDelete != null)
+            {
+                Polygons.RemoveAt(polyIndex);
+            }
         }
 
-        private void BuildPolygon(intPoint point)
+        private void BuildPolygon()
         {
             if (Points == null)
                 return;
@@ -87,7 +98,7 @@ namespace lab1
             {
                 // Undo last point addition
                 intPoint lastPoint = Points.Last();
-                if (lastPoint.IsCloseToPoint(point))
+                if (lastPoint.IsCloseToPoint(clickedPoint))
                 {
                     Points.RemoveAt(Points.Count - 1);
                     if (Points.Count == 0)
@@ -98,7 +109,7 @@ namespace lab1
 
                 // Close polygon
                 intPoint initialPoint = Points.First();
-                if (initialPoint.IsCloseToPoint(point))
+                if (initialPoint.IsCloseToPoint(clickedPoint))
                 {
                     state = States.Idle;
                     Polygons.Add(new Polygon(Points));
@@ -108,7 +119,7 @@ namespace lab1
                 }
             }
 
-            Points.Add(point);
+            Points.Add(clickedPoint);
         }
 
         private bool TryToGrabPoint(intPoint point)
@@ -177,13 +188,9 @@ namespace lab1
             intPoint? v = grabbedPoint.GetVerticallyConstrainedNeighbor();
 
             if (h != null)
-            {
                 h.y = MousePos.y;
-            }
             if (v != null)
-            {
                 v.x = MousePos.x;
-            }
 
             grabbedPoint.y = MousePos.y;
             grabbedPoint.x = MousePos.x;
@@ -251,14 +258,11 @@ namespace lab1
             state = States.Idle;
         }
 
-        private void AddHorizontalConstraint()
+        private void SetHorizontalConstraint()
         {
             intPoint midPoint = intPoint.middlePoint(grabbedLine.p1, grabbedLine.p2);
 
-            intPoint min = grabbedLine.p1.x < grabbedLine.p2.x ? grabbedLine.p1 : grabbedLine.p2;
-            intPoint max = grabbedLine.p1.x < grabbedLine.p2.x ? grabbedLine.p2 : grabbedLine.p1;
-
-            if (min.SetConstraint(max, intPoint.Constraints.Horizontal))
+            if (grabbedLine.p1.SetConstraint(grabbedLine.p2, intPoint.Constraints.Horizontal))
             {
                 grabbedLine.p1.y = midPoint.y;
                 grabbedLine.p2.y = midPoint.y;
@@ -267,14 +271,11 @@ namespace lab1
             state = States.Idle;
         }
 
-        private void AddVerticalConstraint()
+        private void SetVerticalConstraint()
         {
             intPoint midPoint = intPoint.middlePoint(grabbedLine.p1, grabbedLine.p2);
 
-            intPoint min = grabbedLine.p1.y < grabbedLine.p2.y ? grabbedLine.p1 : grabbedLine.p2;
-            intPoint max = grabbedLine.p1.y < grabbedLine.p2.y ? grabbedLine.p2 : grabbedLine.p1;
-
-            if (min.SetConstraint(max, intPoint.Constraints.Vertical))
+            if (grabbedLine.p1.SetConstraint(grabbedLine.p2, intPoint.Constraints.Vertical))
             {
                 grabbedLine.p1.x = midPoint.x;
                 grabbedLine.p2.x = midPoint.x;

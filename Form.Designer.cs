@@ -28,39 +28,45 @@
         /// </summary>
         private void InitializeComponent()
         {
-            splitContainer1 = new SplitContainer();
+            splitContainer = new SplitContainer();
             canvas = new PictureBox();
+            offsetGroupBox = new GroupBox();
+            offsetSlider = new TrackBar();
+            checkBox1 = new CheckBox();
             modeGroupBox = new GroupBox();
             bresenhamButton = new RadioButton();
             winformsLineButton = new RadioButton();
             menuStrip1 = new MenuStrip();
             canvasToolStripMenuItem = new ToolStripMenuItem();
             clearToolStripMenuItem = new ToolStripMenuItem();
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
-            splitContainer1.Panel1.SuspendLayout();
-            splitContainer1.Panel2.SuspendLayout();
-            splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer).BeginInit();
+            splitContainer.Panel1.SuspendLayout();
+            splitContainer.Panel2.SuspendLayout();
+            splitContainer.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)canvas).BeginInit();
+            offsetGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)offsetSlider).BeginInit();
             modeGroupBox.SuspendLayout();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
-            // splitContainer1
+            // splitContainer
             // 
-            splitContainer1.Dock = DockStyle.Fill;
-            splitContainer1.Location = new Point(0, 24);
-            splitContainer1.Name = "splitContainer1";
+            splitContainer.Dock = DockStyle.Fill;
+            splitContainer.Location = new Point(0, 24);
+            splitContainer.Name = "splitContainer";
             // 
-            // splitContainer1.Panel1
+            // splitContainer.Panel1
             // 
-            splitContainer1.Panel1.Controls.Add(canvas);
+            splitContainer.Panel1.Controls.Add(canvas);
             // 
-            // splitContainer1.Panel2
+            // splitContainer.Panel2
             // 
-            splitContainer1.Panel2.Controls.Add(modeGroupBox);
-            splitContainer1.Size = new Size(800, 426);
-            splitContainer1.SplitterDistance = 579;
-            splitContainer1.TabIndex = 0;
+            splitContainer.Panel2.Controls.Add(offsetGroupBox);
+            splitContainer.Panel2.Controls.Add(modeGroupBox);
+            splitContainer.Size = new Size(800, 426);
+            splitContainer.SplitterDistance = 579;
+            splitContainer.TabIndex = 0;
             // 
             // canvas
             // 
@@ -78,6 +84,41 @@
             canvas.MouseMove += canvas_MouseMove;
             canvas.MouseUp += canvas_MouseUp;
             // 
+            // offsetGroupBox
+            // 
+            offsetGroupBox.Controls.Add(offsetSlider);
+            offsetGroupBox.Controls.Add(checkBox1);
+            offsetGroupBox.Dock = DockStyle.Top;
+            offsetGroupBox.Location = new Point(0, 64);
+            offsetGroupBox.Name = "offsetGroupBox";
+            offsetGroupBox.Size = new Size(217, 74);
+            offsetGroupBox.TabIndex = 1;
+            offsetGroupBox.TabStop = false;
+            offsetGroupBox.Text = "Offset polygon options";
+            // 
+            // offsetSlider
+            // 
+            offsetSlider.Dock = DockStyle.Fill;
+            offsetSlider.LargeChange = 10;
+            offsetSlider.Location = new Point(3, 38);
+            offsetSlider.Maximum = 100;
+            offsetSlider.Name = "offsetSlider";
+            offsetSlider.Size = new Size(211, 33);
+            offsetSlider.TabIndex = 1;
+            offsetSlider.TickFrequency = 5;
+            offsetSlider.Scroll += offsetSlider_Scroll;
+            // 
+            // checkBox1
+            // 
+            checkBox1.AutoSize = true;
+            checkBox1.Dock = DockStyle.Top;
+            checkBox1.Location = new Point(3, 19);
+            checkBox1.Name = "checkBox1";
+            checkBox1.Size = new Size(211, 19);
+            checkBox1.TabIndex = 0;
+            checkBox1.Text = "Draw offset polygon";
+            checkBox1.UseVisualStyleBackColor = true;
+            // 
             // modeGroupBox
             // 
             modeGroupBox.Controls.Add(bresenhamButton);
@@ -85,7 +126,7 @@
             modeGroupBox.Dock = DockStyle.Top;
             modeGroupBox.Location = new Point(0, 0);
             modeGroupBox.Name = "modeGroupBox";
-            modeGroupBox.Size = new Size(217, 100);
+            modeGroupBox.Size = new Size(217, 64);
             modeGroupBox.TabIndex = 0;
             modeGroupBox.TabStop = false;
             modeGroupBox.Text = "Line drawing mode";
@@ -144,7 +185,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(splitContainer1);
+            Controls.Add(splitContainer);
             Controls.Add(menuStrip1);
             KeyPreview = true;
             MainMenuStrip = menuStrip1;
@@ -152,11 +193,14 @@
             Text = "NeoGebra";
             KeyDown += NeoGebra_KeyDown;
             KeyUp += NeoGebra_KeyUp;
-            splitContainer1.Panel1.ResumeLayout(false);
-            splitContainer1.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
-            splitContainer1.ResumeLayout(false);
+            splitContainer.Panel1.ResumeLayout(false);
+            splitContainer.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer).EndInit();
+            splitContainer.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)canvas).EndInit();
+            offsetGroupBox.ResumeLayout(false);
+            offsetGroupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)offsetSlider).EndInit();
             modeGroupBox.ResumeLayout(false);
             modeGroupBox.PerformLayout();
             menuStrip1.ResumeLayout(false);
@@ -167,7 +211,7 @@
 
         #endregion
 
-        private SplitContainer splitContainer1;
+        private SplitContainer splitContainer;
         private PictureBox canvas;
         private MenuStrip menuStrip1;
         private ToolStripMenuItem canvasToolStripMenuItem;
@@ -175,5 +219,8 @@
         private GroupBox modeGroupBox;
         private RadioButton bresenhamButton;
         private RadioButton winformsLineButton;
+        private GroupBox offsetGroupBox;
+        private TrackBar offsetSlider;
+        private CheckBox checkBox1;
     }
 }

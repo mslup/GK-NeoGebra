@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
@@ -37,15 +38,18 @@ namespace lab1
         private static Pen debugPen = new Pen(Color.Red, pointWidth);
         private static SolidBrush debugBrush = new SolidBrush(Color.Red);
 
-        public static void DrawPoint(this Graphics g, intPoint p)
+        public static void DrawPoint(this Graphics g, intPoint p, Pen? pen = null)
         {
+            if (pen == null)
+                pen = pointPen;
+
             if (NeoGebra.MousePos.IsCloseToPoint(p))
                 g.DrawEllipse(hlPointPen,
                     p.x - hlPointWidth / 2,
                     p.y - hlPointWidth / 2,
                     hlPointWidth, hlPointWidth);
 
-            g.DrawEllipse(pointPen,
+            g.DrawEllipse(pen,
                 p.x - pointWidth / 2,
                 p.y - pointWidth / 2,
                 pointWidth, pointWidth);
@@ -169,34 +173,53 @@ namespace lab1
 
         }
 
-        public static void DrawPolygons(this Graphics g, List<Polygon> Polygons)
+        public static void DrawPolygons(this Graphics g, List<Polygon> Polygons, int offset)
         {
-            bool start = true;
-            intPoint lastPoint = new intPoint();
-
             foreach (Polygon poly in Polygons)
             {
+                g.DrawOffsetPolygon(poly, offset);
+                g.DrawPolygon(poly);
+            }
+        }
+
+        private static void DrawOffsetPolygon(this Graphics g, Polygon poly, int offset)
+        {
+            if (offset == 0)
+                return;
+
+            (var drawMe, var meToo) = poly.CalculateOffsetPolygon(offset);
+
+            g.DrawPolygon(drawMe, false);
+            
+            foreach (var pt in meToo)
+            {
+                g.DrawPoint(pt, debugPen);
+            }
+        }
+
+        private static void DrawPolygon(this Graphics g, Polygon poly, bool fill = true)
+        {
+            intPoint lastPoint = new intPoint();
+            if (fill)
                 g.FillPolygon(poly);
 
-                foreach (intPoint p in poly.vertices)
+            bool start = true;
+            foreach (intPoint p in poly.vertices)
+            {
+                if (!start)
                 {
-                    if (!start)
-                    {
-                        g.DrawLine(lastPoint, p);
-                        g.DrawPoint(lastPoint);
-                    }
-                    start = false;
-                    lastPoint = p;
+                    g.DrawLine(lastPoint, p);
+                    g.DrawPoint(lastPoint);
                 }
-
-                g.DrawLine(lastPoint, poly.vertices.First());
-                g.DrawPoint(poly.vertices.First());
-                g.DrawPoint(lastPoint);
-                start = true;
+                start = false;
+                lastPoint = p;
             }
 
-
+            g.DrawLine(lastPoint, poly.vertices.First());
+            g.DrawPoint(poly.vertices.First());
+            g.DrawPoint(lastPoint);
         }
+
         public static void DrawPolygonInProgress(this Graphics g, List<intPoint> Points)
         {
             bool start = true;

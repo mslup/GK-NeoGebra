@@ -10,16 +10,13 @@ namespace lab1
         public const bool Debug = false;
 
         public const int eps = 8;
+        private int offset = 10;
         public static intPoint MousePos
         {
             get;
             private set;
         }
-        //public static Dictionary<(intPoint, intPoint), char> EdgeConstraints
-        //{
-        //    get;
-        //    private set;
-        //}
+
 
         private enum States
         {
@@ -30,8 +27,8 @@ namespace lab1
             MovingPolygon,
             AddingMidpoint,
             Deleting,
-            AddingEdgeConstraintH,
-            AddingEdgeConstraintV
+            SettingEdgeConstraintH,
+            SettingEdgeConstraintV
         };
         private States state;
 
@@ -43,6 +40,7 @@ namespace lab1
 
         private List<intPoint> Points = new();
         private List<Polygon> Polygons = new();
+        private List<Polygon> OffsetPolygons = new();
         private intPoint grabbedPoint = new();
         private (intPoint p1, intPoint p2) grabbedLine = new();
         private Polygon? grabbedPolygon = null;
@@ -51,27 +49,70 @@ namespace lab1
         public NeoGebra()
         {
             InitializeComponent();
-            InitializeCanvas();
+            InitializeScene();
             MousePos = new();
-            //EdgeConstraints = new();
+
             state = States.Idle;
             linemode = LineModes.WinForms;
             winformsLineButton.Checked = true;
-
-            if (Debug)
-            {
-                linemode = LineModes.Bresenham;
-                BuildPolygon(new intPoint(287, 113));
-                BuildPolygon(new intPoint(486, 194));
-                BuildPolygon(new intPoint(259, 292));
-                BuildPolygon(new intPoint(287, 113));
-            }
-
+            offsetSlider.Value = offset;
         }
 
-        private void InitializeCanvas()
+        private void InitializeScene()
         {
-            canvas = new PictureBox();
+
+            Polygons.Add(new Polygon(new List<intPoint>()
+            {
+                new intPoint(160, 81),
+                new intPoint(213, 208),
+                new intPoint(174, 261),
+                new intPoint(184, 172),
+                new intPoint(130, 311),
+                new intPoint(429, 293)
+            }));
+
+            //canvas = new PictureBox();
+
+            //Polygons.Add(new Polygon(new List<intPoint>()
+            //{
+            //    new intPoint(88, 56),
+            //    new intPoint(197, 60),
+            //    new intPoint(230, 151),
+            //    new intPoint(143, 151),
+            //    new intPoint(60, 235)
+            //}));
+
+            //TryToGrabLine(new intPoint(200, 151));
+            //SetHorizontalConstraint();
+
+            //Polygons.Add(new Polygon(new List<intPoint>()
+            //{
+            //    new intPoint(351, 198),
+            //    new intPoint(351, 109),
+            //    new intPoint(415, 40),
+            //    new intPoint(497, 100),
+            //    new intPoint(464, 197)
+            //}));
+
+            //TryToGrabLine(new intPoint(351, 150));
+            //SetVerticalConstraint();
+
+            //Polygons.Add(new Polygon(new List<intPoint>()
+            //{
+            //    new intPoint(195, 379),
+            //    new intPoint(165, 292),
+            //    new intPoint(250, 225),
+            //    new intPoint(250, 333),
+            //    new intPoint(387, 275),
+            //    new intPoint(387, 379)
+            //}));
+
+            //TryToGrabLine(new intPoint(250, 300));
+            //SetVerticalConstraint();
+            //TryToGrabLine(new intPoint(387, 300));
+            //SetVerticalConstraint();
+            //TryToGrabLine(new intPoint(200, 379));
+            //SetHorizontalConstraint();
         }
 
         private void canvas_Paint(object sender, PaintEventArgs e)
@@ -79,7 +120,7 @@ namespace lab1
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            g.DrawPolygons(Polygons);
+            g.DrawPolygons(Polygons, offset);
             g.DrawPolygonInProgress(Points);
 
             if (state == States.BuildingPolygon)
@@ -99,19 +140,21 @@ namespace lab1
             if (state == States.Idle)
                 state = States.BuildingPolygon;
 
+            clickedPoint = MousePos;
+
             switch (state)
             {
             case States.BuildingPolygon:
-                BuildPolygon(new intPoint(e.X, e.Y));
+                BuildPolygon();
                 break;
             case States.Deleting:
-                DeleteVertexOrConstraint(new intPoint(e.X, e.Y));
+                Delete();
                 break;
-            case States.AddingEdgeConstraintH:
-                AddHorizontalConstraint();
+            case States.SettingEdgeConstraintH:
+                SetHorizontalConstraint();
                 break;
-            case States.AddingEdgeConstraintV:
-                AddVerticalConstraint();
+            case States.SettingEdgeConstraintV:
+                SetVerticalConstraint();
                 break;
             }
 
@@ -153,8 +196,8 @@ namespace lab1
             clickedPoint = new intPoint(e.X, e.Y);
 
             if (state == States.Idle ||
-                state == States.AddingEdgeConstraintH ||
-                state == States.AddingEdgeConstraintV)
+                state == States.SettingEdgeConstraintH ||
+                state == States.SettingEdgeConstraintV)
             {
                 if (Polygons.Count == 0)
                     return;
@@ -165,8 +208,8 @@ namespace lab1
                 }
                 else if (TryToGrabLine(clickedPoint))
                 {
-                    if (state != States.AddingEdgeConstraintH &&
-                        state != States.AddingEdgeConstraintV)
+                    if (state != States.SettingEdgeConstraintH &&
+                        state != States.SettingEdgeConstraintV)
                         state = States.MovingEdge;
                 }
                 else if (TryToGrabPolygon(clickedPoint))
@@ -196,11 +239,11 @@ namespace lab1
                 break;
             case Keys.H:
                 Cursor = Cursors.HSplit;
-                state = States.AddingEdgeConstraintH;
+                state = States.SettingEdgeConstraintH;
                 break;
             case Keys.V:
                 Cursor = Cursors.VSplit;
-                state = States.AddingEdgeConstraintV;
+                state = States.SettingEdgeConstraintV;
                 break;
             }
         }
@@ -234,13 +277,22 @@ namespace lab1
         private void winformsLineButton_CheckedChanged(object sender, EventArgs e)
         {
             linemode = LineModes.WinForms;
-            canvas.Invalidate();
+
+            splitContainer.Refresh();
         }
 
         private void bresenhamButton_CheckedChanged(object sender, EventArgs e)
         {
             linemode = LineModes.Bresenham;
-            canvas.Invalidate();
+
+            splitContainer.Refresh();
+        }
+
+        private void offsetSlider_Scroll(object sender, EventArgs e)
+        {
+            offset = offsetSlider.Value;
+            
+            splitContainer.Refresh();
         }
     }
 }
